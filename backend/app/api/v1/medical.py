@@ -3,6 +3,7 @@ from app.api.v1.auth import get_current_user
 from app.models.base import UserModel
 from app.schemas.triage import SymptomEvaluationRequest, TriageAssessmentResponse
 from app.services.triage_service import ClinicalTriageService
+from app.schemas.chat import ChatPromptRequest
 
 router = APIRouter()
 
@@ -84,3 +85,37 @@ async def upload_and_analyze_diagnostic_report(
         
     structured_report = await ocr_service.compile_structured_report(raw_text)
     return structured_report
+
+
+from fastapi import UploadFile, File
+from fastapi.responses import StreamingResponse
+from app.services.audio_service import ClinicalAudioVoiceService
+
+
+@router.post("/dictate-speech", status_code=status.HTTP_200_OK)
+async def process_clinical_dictation_upload(
+    file: UploadFile = File(...),
+    current_user: UserModel = Depends(get_current_user)
+):
+    """
+    Accepts raw binary audio uploads recorded from client-side microphone modules 
+    and returns a clean text transcription string via Groq Whisper.
+    """
+    audio_service = ClinicalAudioVoiceService()
+    file_bytes = await file.read()
+    
+    transcription_text = audio_service.transcribe_audio_stream(file_bytes, file_name=file.filename)
+    return {"transcription": transcription_text}
+
+@router.post("/synthesize-speech", status_code=status.HTTP_200_OK)
+async def generate_vocal_audio_readback(
+    payload: ChatPromptRequest, # Reusing simple string layout schema (payload.message)
+    current_user: UserModel = Depends(get_current_user)
+):
+    """
+    Synthesizes incoming text blocks into a streaming MP3 audio file.
+    """
+    audio_service = ClinicalAudioVoiceService()
+    audio_buffer = audio_service.synthesize_speech_bytes(payload.message)
+    
+    return StreamingResponse(audio_buffer, media_type="audio/mp3")

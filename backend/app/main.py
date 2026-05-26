@@ -72,7 +72,10 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.chat import router as chat_router
 from app.api.v1.medical import router as medical_router
 from app.api.v1.orchestrator import router as orchestrator_router
+from app.middleware.profiler import ClinicalLatencyProfilerMiddleware
 
+# Instantiate the latency profiler tracking framework
+app.add_middleware(ClinicalLatencyProfilerMiddleware)
 app.include_router(
     orchestrator_router,
     prefix=f"{settings.API_V1_STR}/agentic",
