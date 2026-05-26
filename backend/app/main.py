@@ -1,0 +1,81 @@
+import time
+import logging
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
+
+
+# Setup technical logging framework
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version="1.0.0",
+    description="Production-grade asynchronous AI core for automated clinical workflows."
+)
+
+from app.models.base import Base
+from app.database.session import async_engine
+
+@app.on_event("startup")
+async def create_database_tables():
+    """Automatically constructs user tables in PostgreSQL on application boot."""
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Compliance Database schemas mapped successfully.")
+
+# Apply CORS constraints for our frontend clients
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Restrict to specific origins in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.middleware("http")
+async def audit_log_execution_duration(request: Request, call_next):
+    """
+    System middleware to calculate precision performance logs across agent executions.
+    """
+    start_time = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+    logger.info(f"Route: {request.url.path} | Time Elapsed: {duration:.4f}s")
+    return response
+
+@app.exception_handler(Exception)
+async def global_unhandled_exception_handler(request: Request, exc: Exception):
+    """
+    Catch-all crash safety net to prevent internal stack traces from leaking to public APIs.
+    """
+    logger.error(f"Critical unhandled system failure on route {request.url.path}: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "An internal unexpected server exception occurred. System triage is active."}
+    )
+
+@app.get("/health", status_code=status.HTTP_200_OK)
+async def system_health_status_check():
+    """
+    Liveness and readiness checking endpoint for automated orchestrators or container deployments.
+    """
+    return {
+        "status": "operational",
+        "timestamp": time.time(),
+        "platform": settings.PROJECT_NAME
+    }
+
+from app.api.v1.auth import router as auth_router
+from app.api.v1.chat import router as chat_router
+from app.api.v1.medical import router as medical_router
+
+app.include_router(medical_router, prefix=f"{settings.API_V1_STR}/medical", tags=["Clinical Operations Engine"])
+app.include_router(auth_router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
+app.include_router(chat_router, prefix=f"{settings.API_V1_STR}/chat", tags=["AI Conversation Core"])
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
