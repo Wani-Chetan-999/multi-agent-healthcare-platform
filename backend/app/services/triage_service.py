@@ -1,60 +1,99 @@
+import json
+import logging
+import re
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
+
 from app.core.config import settings
 from app.schemas.triage import TriageAssessmentResponse
-import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ClinicalTriageService:
     def __init__(self):
-        # Initialize Groq Llama-3 model for precise schema analysis
+
         self.base_llm = ChatGroq(
             groq_api_key=settings.GROQ_API_KEY,
-            model_name="llama3-8b-8192",
-            temperature=0.0  # Zero temperature ensures consistent, deterministic risk evaluation
+            model_name="llama-3.1-8b-instant",
+            temperature=0.0
         )
-        # Bind our Pydantic response schema to force structured JSON output formatting
-        self.structured_analyzer = self.base_llm.with_structured_output(TriageAssessmentResponse)
 
-    async def analyze_symptoms_risk_profile(self, user_input_text: str) -> TriageAssessmentResponse:
-        """
-        Runs the incoming symptom profile through our prompt engineering matrix 
-        to evaluate potential health emergencies.
-        """
+    async def analyze_symptoms_risk_profile(
+        self,
+        user_input_text: str
+    ) -> TriageAssessmentResponse:
+
         triage_prompt_template = ChatPromptTemplate.from_messages([
-            ("system", (
-                "You are an expert clinical triage screening assistant. Your job is to analyze user-reported symptoms "
-                "and identify potential life-threatening health emergencies.\n\n"
-                "CRITICAL LIFE-THREATENING EMERGENCY MARKERS INCLUDE:\n"
-                "- Chest pain, radiating arm/jaw pain, pressure, or tightness (Myocardial Infarction risk)\n"
-                "- Severe shortness of breath, acute dyspnea, or anaphylactic airway closure\n"
-                "- Sudden numbness, asymmetric facial drooping, slurred speech (Acute Stroke indicators)\n"
-                "- Severe, uncontrolled bleeding, poisoning, or sudden loss of responsiveness\n\n"
-                "EVALUATION CRITERIA:\n"
-                "1. If any critical emergency markers are found, set `is_emergency` to true and `severity_tier` to 'CRITICAL'.\n"
-                "2. Provide highly descriptive, professional clinical educational guidance outlining standard care parameters.\n"
-                "3. You must include a transparent safety disclaimer stating that this automated triage check does not replace in-person medical validation."
-            )),
-            ("human", "Patient Symptom Log: {patient_symptoms}")
-        ])
+            (
+                "system",
+                """
+                You are an expert clinical triage screening assistant.
 
-        # Construct the execution chain
-        evaluation_chain = triage_prompt_template | self.structured_analyzer
-        
+                Return ONLY raw JSON.
+                Do not explain.
+                Do not use markdown.
+
+                JSON format:
+
+                {{
+                "is_emergency": false,
+                "severity_tier": "LOW",
+                "risk_factors": ["factor1", "factor2"],
+                "clinical_educational_guidance": "guidance text",
+                "safety_disclaimer": "disclaimer"
+                }}
+
+                Rules:
+                - If symptoms are life threatening set is_emergency=true
+                - severity_tier must be:
+                LOW, MODERATE, HIGH, or CRITICAL
+                - Always return valid JSON only
+                """
+                ),
+                        (
+                            "human",
+                            "Patient Symptom Log: {patient_symptoms}"
+                        )
+                    ])
+
+        evaluation_chain = triage_prompt_template | self.base_llm
+
         try:
-            # Execute the structured prediction pipeline asynchronously
-            assessment_result: TriageAssessmentResponse = evaluation_chain.invoke({
+
+            response = evaluation_chain.invoke({
                 "patient_symptoms": user_input_text
             })
-            return assessment_result
+
+            raw_content = response.content
+
+
+            json_match = re.search(r"\{.*\}", raw_content, re.DOTALL)
+
+            if not json_match:
+                raise ValueError("No valid JSON returned from model.")
+
+            parsed = json.loads(json_match.group())
+
+            return TriageAssessmentResponse(**parsed)
+
         except Exception as e:
-            logger.error(f"Critical exception inside Triage Core Execution: {str(e)}")
-            # Safe system fallback if the prediction pipeline faces an issue
+
+            logger.error(
+                f"Critical exception inside Triage Core Execution: {str(e)}"
+            )
+
             return TriageAssessmentResponse(
-                is_emergency=True,  # Default to high safety flag on processing failure
+                is_emergency=True,
                 severity_tier="CRITICAL",
                 risk_factors=["System evaluation processing error"],
-                clinical_educational_guidance="An error occurred while processing this assessment. If you are feeling severe physical discomfort, please contact emergency services immediately.",
-                safety_disclaimer="System pipeline fallback active. Please consult professional healthcare teams directly."
+                clinical_educational_guidance=(
+                    "An error occurred while processing this assessment. "
+                    "If you are feeling severe physical discomfort, "
+                    "please contact emergency services immediately."
+                ),
+                safety_disclaimer=(
+                    "System pipeline fallback active. "
+                    "Please consult professional healthcare teams directly."
+                )
             )
