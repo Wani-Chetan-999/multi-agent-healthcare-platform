@@ -2,9 +2,11 @@ import uuid
 import logging
 from typing import List
 from fastapi import APIRouter, Depends, status, HTTPException
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from pydantic import BaseModel
+from fastapi.responses import StreamingResponse
 
 # LangChain / LangGraph Engine Elements
 from langchain_core.messages import HumanMessage, AIMessage
@@ -20,6 +22,7 @@ from app.models.chat import ConversationModel, ChatMessageModel
 
 # Pydantic Schemas
 from app.schemas.orchestrator import CopilotInboundPayload, CopilotOutboundResponse
+import asyncio
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -181,9 +184,18 @@ async def execute_unified_copilot_loop(
             thread_obj.title = payload.message[:30] + "..."
             
     await db.commit()
+    
+    async def token_generator():
 
-    return CopilotOutboundResponse(
-        conversation_id=payload.conversation_id,
-        response_text=final_reply,
-        dispatched_path=final_state.get("next_action") or "completed"
+        chunks = final_reply.splitlines(keepends=True)
+
+        for chunk in chunks:
+
+            yield chunk
+
+            await asyncio.sleep(0.02)
+
+    return StreamingResponse(
+        token_generator(),
+        media_type="text/plain"
     )

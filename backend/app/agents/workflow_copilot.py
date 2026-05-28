@@ -147,10 +147,25 @@ class UnifiedCopilotGraphEngine:
         
         recent_messages = state["messages"][-4:]
 
-        response = self.llm.invoke(
+        # response = self.llm.invoke(
+        #     [SystemMessage(content=system_instruction)] + recent_messages
+        # )
+        # return {"messages": [AIMessage(content=response.content)]}
+        streamed_text = ""
+
+        async for chunk in self.llm.astream(
             [SystemMessage(content=system_instruction)] + recent_messages
-        )
-        return {"messages": [AIMessage(content=response.content)]}
+        ):
+
+            if chunk.content:
+                streamed_text += chunk.content
+
+        return {
+            "messages": [
+                AIMessage(content=streamed_text)
+            ]
+        }
+
 
     async def chat_node(self, state: HealthcareAgentState) -> Dict[str, Any]:
         """Handles general conversation and applies standard safety parameters."""
@@ -161,11 +176,25 @@ class UnifiedCopilotGraphEngine:
         )
         recent_messages = state["messages"][-4:]
 
-        response = self.llm.invoke(
+        # response = self.llm.invoke(
+        #     [SystemMessage(content=system_boundary)] + recent_messages
+        # )
+        # return {"messages": [AIMessage(content=response.content)]}
+        streamed_text = ""
+
+        async for chunk in self.llm.astream(
             [SystemMessage(content=system_boundary)] + recent_messages
-        )
-        return {"messages": [AIMessage(content=response.content)]}
-    
+        ):
+
+            if chunk.content:
+                streamed_text += chunk.content
+
+        return {
+            "messages": [
+                AIMessage(content=streamed_text)
+            ]
+        }
+        
 def copilot_router_logic(state: HealthcareAgentState) -> str:
     return state["next_action"]
 

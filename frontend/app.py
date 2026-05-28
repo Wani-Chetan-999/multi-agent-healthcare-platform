@@ -35,7 +35,7 @@ header { visibility: hidden; }
 /* Constrain main thread layout to elegant readable reading limits */
 .main .block-container {
     padding-top: 2rem;
-    padding-bottom: 12rem; /* Reserves space so bottom text doesn't hide behind chat container */
+    padding-bottom: 14rem; 
     max-width: 840px;     
     margin: 0 auto;
 }
@@ -85,8 +85,6 @@ section[data-testid="stSidebar"] .stButton button:hover {
 /* =========================================================
    🔥 CHATGPT / GEMINI STYLE FIXED INPUT + INLINE PLUS BUTTON
 ========================================================= */
-
-/* Native Streamlit sticky bottom dock wrapper styling */
 div[data-testid="stBottom"] {
     background: #081028 !important;
     border-top: 1px solid #1E293B !important;
@@ -95,19 +93,16 @@ div[data-testid="stBottom"] {
     z-index: 9999 !important;
 }
 
-/* Center the chat layout columns width configuration */
 div[data-testid="stBottom"] > div {
     max-width: 840px !important;
     margin: 0 auto !important;
 }
 
-/* Align columns inner structures vertically balanced */
 div[data-testid="stBottom"] div[data-testid="stHorizontalBlock"] {
     align-items: center !important;
     gap: 8px !important;
 }
 
-/* Native chat input component container overrides */
 div[data-testid="stChatInput"] {
     background: #111827 !important;
     border: 1px solid #1F2937 !important;
@@ -119,30 +114,23 @@ div[data-testid="stChatInput"] {
     width: 100% !important;
 }
 
-/* Clear text area offsets inside the custom container view */
 div[data-testid="stChatInput"] textarea {
     color: #F8FAFC !important;
     font-size: 15px !important;
     padding-left: 16px !important;
 }
 
-/* Send arrow positioning framework alignment */
 div[data-testid="stChatInput"] button {
     right: 10px !important;
 }
 
-/* =========================================================
-   INLINE + BUTTON POPOVER STYLING
-========================================================= */
-
-/* Make popover block container align clean and tight inside columns grid */
+/* Popovers context layout controls */
 div[data-testid="element-container"]:has(div[data-testid="stPopover"]) {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
 }
 
-/* Reset baseline layout constraints on Popover blocks */
 div[data-testid="stPopover"] {
     margin: 0 !important;
     padding: 0 !important;
@@ -155,7 +143,6 @@ div[data-testid="stPopover"] > div:first-child {
     padding: 0 !important;
 }
 
-/* Circular Plus Action Icon configuration rules */
 div[data-testid="stPopover"] button {
     width: 44px !important;
     height: 44px !important;
@@ -173,7 +160,6 @@ div[data-testid="stPopover"] button {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Hover interactive dynamic transition feedback scaling */
 div[data-testid="stPopover"] button:hover {
     color: #FFFFFF !important;
     border-color: #3B82F6 !important;
@@ -181,12 +167,10 @@ div[data-testid="stPopover"] button:hover {
     transform: scale(1.06);
 }
 
-/* Clear out original downward native dropdown indicator arrow */
 div[data-testid="stPopover"] svg {
     display: none !important;
 }
 
-/* Formatting adjustments for the staging file indicators directly above the input block */
 .staged-file-container {
     margin-bottom: 12px;
     display: flex;
@@ -205,11 +189,9 @@ div[data-testid="stPopover"] svg {
     font-size: 13px;
 }
 
-/* Minimalist File uploader hide text rules */
 [data-testid="stFileUploaderDropzoneInstructions"] { display: none; }
 [data-testid="stFileUploaderDropzone"] { border: none; background: transparent; padding: 0; }
 
-/* Welcome Presentation UI layout */
 .welcome-title {
     text-align: center;
     font-size: 42px;
@@ -249,29 +231,20 @@ div[data-testid="stPopover"] svg {
     line-height: 1.4;
 }
 
-/* Target ONLY the secondary button components globally */
-button[kind="secondary"][data-testid="baseButton-secondary"] {
-    background: #2563EB;
-}
-
 /* =========================================================
-   🚨 ABSOLUTE OVERRIDE BYPASS FOR LOGOUT BUTTON
+   🛑 BULLETPROOF RED LOGOUT OVERRIDE
 ========================================================= */
-/* Targets the layout element that contains the exact button string text fallback */
-div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div.element-container:last-child button,
-div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] .stButton button:has(div:contains("🚪")),
-div[data-testid="stSidebar"] button:has(div:contains("Log Out")) {
+div.logout-wrapper button {
     background-color: #7F1D1D !important;
     color: #FFFFFF !important;
     border: 1px solid #B91C1C !important;
     border-radius: 12px !important;
     font-weight: 600 !important;
+    width: 100% !important;
+    padding: 0.75rem !important;
 }
 
-/* Forced hover handling states */
-div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div.element-container:last-child button:hover,
-div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] .stButton button:has(div:contains("🚪")):hover,
-div[data-testid="stSidebar"] button:has(div:contains("Log Out")):hover {
+div.logout-wrapper button:hover {
     background-color: #991B1B !important;
     border-color: #EF4444 !important;
     color: #FFFFFF !important;
@@ -285,12 +258,14 @@ div[data-testid="stSidebar"] button:has(div:contains("Log Out")):hover {
 if "user_token" not in st.session_state:
     st.session_state["user_token"] = None
 
-# Restore token ONLY if available
-if saved_token and not st.session_state["user_token"]:
-    st.session_state["user_token"] = saved_token
+if "logging_out" not in st.session_state:
+    st.session_state["logging_out"] = False
 
 if "active_thread_id" not in st.session_state:
     st.session_state["active_thread_id"] = None
+
+if "loaded_thread_id" not in st.session_state:
+    st.session_state["loaded_thread_id"] = None
 
 if "ui_messages" not in st.session_state:
     st.session_state["ui_messages"] = []
@@ -300,6 +275,27 @@ if "staged_file" not in st.session_state:
 
 if "uploader_reset_counter" not in st.session_state:
     st.session_state["uploader_reset_counter"] = 0
+
+# Guard against stale tokens during logging out cycles
+if saved_token and not st.session_state["user_token"] and not st.session_state["logging_out"]:
+    st.session_state["user_token"] = saved_token
+
+# -------------------------------------------------------
+# BULLETPROOF LOGOUT HANDLER
+# -------------------------------------------------------
+def handle_session_logout():
+    st.session_state["logging_out"] = True
+    st.session_state["user_token"] = None
+    st.session_state["active_thread_id"] = None
+    st.session_state["loaded_thread_id"] = None
+    st.session_state["ui_messages"] = []
+    st.session_state["staged_file"] = None
+    
+    # Wrap in try/except block to intercept KeyError tracebacks cleanly
+    try:
+        cookie_manager.delete("copilot_jwt_token")
+    except Exception:
+        pass
 
 # -------------------------------------------------------
 # AUTHENTICATION GUARD (LOGIN / REGISTER)
@@ -325,11 +321,8 @@ if not st.session_state["user_token"]:
                     if response.status_code == 200:
                         token = response.json()["access_token"]
                         st.session_state["user_token"] = token
-                        cookie_manager.set(
-                            "copilot_jwt_token",
-                            token,
-                            expires_at=None
-                        )
+                        st.session_state["logging_out"] = False  # Reset logout state on success
+                        cookie_manager.set("copilot_jwt_token", token, expires_at=None)
                         st.rerun()
                     else:
                         st.error("Invalid credentials.")
@@ -351,7 +344,8 @@ if not st.session_state["user_token"]:
                     st.error(str(e))
     st.stop()
 
-headers = {"Authorization": f"Bearer {st.session_state['user_token']}"}
+token = st.session_state.get("user_token")
+headers = {"Authorization": f"Bearer {token}"} if token else {}
 
 # -------------------------------------------------------
 # LOAD CONVERSATION HISTORY
@@ -362,8 +356,14 @@ def load_conversation_history(thread_id: str):
             f"http://localhost:8000/api/v1/copilot/threads/{thread_id}/messages",
             headers=headers
         )
-        if response.status_code == 200:
+
+        if response.status_code == 401:
+            handle_session_logout()
+            st.warning("Session expired. Please log in again.")
+            st.rerun()
+        elif response.status_code == 200:
             st.session_state["ui_messages"] = response.json()
+            st.session_state["loaded_thread_id"] = thread_id
         else:
             st.session_state["ui_messages"] = []
     except Exception as e:
@@ -378,8 +378,12 @@ with st.sidebar:
     if st.button("➕ New Consultation"):
         try:
             response = httpx.post("http://localhost:8000/api/v1/copilot/threads", headers=headers)
-            if response.status_code == 201:
+            if response.status_code == 401:
+                handle_session_logout()
+                st.rerun()
+            elif response.status_code == 201:
                 st.session_state["active_thread_id"] = response.json()["conversation_id"]
+                st.session_state["loaded_thread_id"] = response.json()["conversation_id"]
                 st.session_state["ui_messages"] = []
                 st.session_state["staged_file"] = None
                 st.rerun()
@@ -391,25 +395,43 @@ with st.sidebar:
 
     try:
         response = httpx.get("http://localhost:8000/api/v1/copilot/threads", headers=headers)
-        if response.status_code == 200:
+        
+        if response.status_code == 401:
+            handle_session_logout()
+            st.rerun()
+            
+        elif response.status_code == 200:
             for thread in response.json():
                 title = thread.get("title", "Untitled Consultation")
                 if st.button(f"💬 {title}", key=thread["conversation_id"]):
                     st.session_state["active_thread_id"] = thread["conversation_id"]
                     st.session_state["staged_file"] = None
-                    load_conversation_history(thread["conversation_id"])
                     st.rerun()
-    except:
+    except Exception as sidebar_err:
         st.caption("Unable to load consultations")
 
     st.markdown("---")
 
+    st.markdown('<div class="logout-wrapper">', unsafe_allow_html=True)
     if st.button("🚪 Log Out", key="logout_button"):
-        cookie_manager.delete("copilot_jwt_token")
-        st.session_state["user_token"] = None
-        st.session_state["active_thread_id"] = None
-        st.session_state["ui_messages"] = []
-        st.rerun()
+        handle_session_logout()
+        
+        # Inject JavaScript to forcibly drop the cookie and refresh the page instantly
+        st.markdown("""
+            <script>
+                document.cookie = "copilot_jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                window.parent.location.reload();
+            </script>
+        """, unsafe_allow_html=True)
+        st.stop()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# -------------------------------------------------------
+# REACTIVE STATE TRACKING LAYER
+# -------------------------------------------------------
+if st.session_state["active_thread_id"] and st.session_state["active_thread_id"] != st.session_state["loaded_thread_id"]:
+    load_conversation_history(st.session_state["active_thread_id"])
         
 
 # -------------------------------------------------------
@@ -433,19 +455,37 @@ if not st.session_state["active_thread_id"]:
     st.stop()
 
 # -------------------------------------------------------
-# CHAT RENDER LOOP
+# CHAT RENDER LOOP WITH STRUCTURE CLEANING
 # -------------------------------------------------------
 thread_id = st.session_state["active_thread_id"]
 
 for message in st.session_state["ui_messages"]:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+    role = message.get("role") or message.get("sender") or "user"
+    content = message.get("content") or message.get("message") or ""
+    
+    if role.lower() in ["assistant", "ai", "bot"]:
+        role = "assistant"
+    else:
+        role = "user"
+        
+    if content:
+        with st.chat_message(role):
+            st.markdown(content)
+
+st.markdown("""
+<div id="end-of-chat"></div>
+<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onload="
+    setTimeout(function() {
+        var el = window.parent.document.getElementById('end-of-chat');
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'end' }); }
+    }, 50);
+" style="display:none;"/>
+""", unsafe_allow_html=True)
 
 
 # =======================================================
 # 📌 SEAMLESS EMBEDDED CONSOLE DOCK ENTRYBAR
 # =======================================================
-# File indicator rendering step above the input track
 if st.session_state["staged_file"]:
     f_name = st.session_state["staged_file"]["name"]
     f_type = st.session_state["staged_file"]["type"]
@@ -461,7 +501,6 @@ if st.session_state["staged_file"]:
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Structurally bound entrybar layout
 with st.container():
     input_col1, input_col2 = st.columns([1, 16])
 
@@ -487,7 +526,7 @@ with st.container():
                     "type": raw_doc.type,
                     "bytes": raw_doc.read()
                 }
-                
+                st.rerun()
                 
             elif raw_voice:
                 st.session_state["staged_file"] = {
@@ -495,11 +534,10 @@ with st.container():
                     "type": raw_voice.type,
                     "bytes": raw_voice.read()
                 }
-                
+                st.rerun()
 
     with input_col2:
         user_text = st.chat_input("Ask about symptoms, reports, medications, or historical patterns...")
-
 
 # -------------------------------------------------------
 # DATA DISPATCH PIPELINE EXECUTION
@@ -511,22 +549,18 @@ if user_text:
         file_name = attached_file["name"]
         file_type = attached_file["type"]
         icon = "🎙️" if ("audio" in file_type or file_name.endswith(("mp3", "wav", "m4a"))) else "📄"
-
         user_display = f"{icon} **Attached File:** `{file_name}`\n\n{user_text}"
     else:
         user_display = user_text
 
-    # Store user submission
     st.session_state["ui_messages"].append({
         "role": "user",
         "content": user_display
     })
 
-    # Render immediate screen response state
     with st.chat_message("user"):
         st.markdown(user_display)
 
-    # Initialize submission transaction package parameters
     payload = {
         "conversation_id": thread_id,
         "message": user_text,
@@ -540,33 +574,43 @@ if user_text:
         payload["attached_file_name"] = attached_file["name"]
         payload["attached_file_mime"] = attached_file["type"]
 
-    # Request network connection exchange session block
     with st.chat_message("assistant"):
         with st.spinner("Clinical reasoning engine active..."):
             try:
-                response = httpx.post(
+                with httpx.stream(
+                    "POST",
                     "http://localhost:8000/api/v1/copilot/copilot-execute",
                     json=payload,
                     headers=headers,
                     timeout=180
-                )
+                ) as response:
 
-                if response.status_code == 200:
-                    response_json = response.json()
-                    assistant_response = response_json.get("response_text", "No response returned from backend.")
-                    st.markdown(assistant_response)
+                    if response.status_code == 401:
+                        handle_session_logout()
+                        st.rerun()
 
-                    st.session_state["ui_messages"].append({
-                        "role": "assistant",
-                        "content": assistant_response
-                    })
-                else:
-                    error_text = f"❌ **Backend Processing Error**\n\nStatus Code: {response.status_code}\n\n`{response.text}`"
-                    st.error(error_text)
-                    st.session_state["ui_messages"].append({
-                        "role": "assistant",
-                        "content": error_text
-                    })
+                    elif response.status_code == 200:
+                        assistant_response = ""
+                        response_placeholder = st.empty()
+
+                        for chunk in response.iter_text():
+                            if chunk:
+                                assistant_response += chunk
+                                response_placeholder.markdown(assistant_response + "▌")
+
+                        response_placeholder.markdown(assistant_response)
+
+                        st.session_state["ui_messages"].append({
+                            "role": "assistant",
+                            "content": assistant_response
+                        })
+                    else:
+                        error_text = f"❌ **Backend Processing Error**\n\nStatus Code: {response.status_code}"
+                        st.error(error_text)
+                        st.session_state["ui_messages"].append({
+                            "role": "assistant",
+                            "content": error_text
+                        })
 
             except Exception as e:
                 error_text = f"🚨 **Connection Failure**\n\n{str(e)}"
@@ -576,8 +620,6 @@ if user_text:
                     "content": error_text
                 })
 
-    # Clear staged items and trigger a clean refresh
     st.session_state["staged_file"] = None
-    # Force uploader recreation
     st.session_state["uploader_reset_counter"] += 1
     st.rerun()
