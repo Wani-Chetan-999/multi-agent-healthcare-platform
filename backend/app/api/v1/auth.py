@@ -5,7 +5,7 @@ from sqlalchemy.future import select
 from jose import JWTError, jwt
 
 from app.database.session import get_db
-from app.models.base import UserModel
+from app.models.user import UserModel
 from app.schemas.user import UserCreate, UserResponse, Token
 from app.core.security import hash_password, verify_password, create_access_token, ALGORITHM
 from app.core.config import settings

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import get_db
 from app.api.v1.auth import get_current_user
-from app.models.base import UserModel
+from app.models.user import UserModel
 from app.schemas.chat import ChatPromptRequest
 from app.services.chat_service import ChatEngineService
 

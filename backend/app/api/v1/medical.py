@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from app.api.v1.auth import get_current_user
-from app.models.base import UserModel
+from app.models.user import UserModel
 from app.schemas.triage import SymptomEvaluationRequest, TriageAssessmentResponse
 from app.services.triage_service import ClinicalTriageService
 from app.schemas.chat import ChatPromptRequest
