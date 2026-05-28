@@ -283,6 +283,10 @@ div[data-testid="stSidebar"] button:has(div:contains("Log Out")):hover {
 # SESSION STATE INITIALIZATION
 # -------------------------------------------------------
 if "user_token" not in st.session_state:
+    st.session_state["user_token"] = None
+
+# Restore token ONLY if available
+if saved_token and not st.session_state["user_token"]:
     st.session_state["user_token"] = saved_token
 
 if "active_thread_id" not in st.session_state:
@@ -483,7 +487,7 @@ with st.container():
                     "type": raw_doc.type,
                     "bytes": raw_doc.read()
                 }
-                st.rerun()
+                
                 
             elif raw_voice:
                 st.session_state["staged_file"] = {
@@ -491,7 +495,7 @@ with st.container():
                     "type": raw_voice.type,
                     "bytes": raw_voice.read()
                 }
-                st.rerun()
+                
 
     with input_col2:
         user_text = st.chat_input("Ask about symptoms, reports, medications, or historical patterns...")
