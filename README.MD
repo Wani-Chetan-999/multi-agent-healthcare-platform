@@ -167,6 +167,81 @@ healthcare_platform/
 
 ```
 
+
+---
+# 📸 Application Preview
+
+## 🖥️ Login Dashboard
+
+![Login Dashboard](assets/login.png)
+
+The login dashboard provides:
+
+* Secure JWT authentication
+* Persistent browser sessions
+* Enterprise healthcare UI
+* Protected clinical workspace access
+
+---
+
+## 💬 AI Clinical Consultation Workspace
+
+![Clinical Consultation Workspace](assets/dashboard.png)
+
+The consultation workspace supports:
+
+* Real-time streaming AI responses
+* OCR medical document analysis
+* Persistent conversation threads
+* Multi-agent healthcare reasoning
+* ChatGPT-style conversational interface
+
+---
+
+## 📄 OCR Prescription & Report Analysis
+
+![OCR Medical Analysis](assets/consultation.png)
+
+The OCR pipeline supports:
+
+* Prescription parsing
+* Medication extraction
+* Clinical entity recognition
+* Longitudinal medical memory ingestion
+* Structured healthcare summarization
+
+---
+
+```
+md id="4sq2wo"
+<table>
+<tr>
+<td align="center">
+
+### 🖥️ Login Dashboard
+<img src="/assets/login.png" width="100%">
+
+</td>
+
+<td align="center">
+
+### 💬 Consultation Workspace
+<img src="/assets/dashboard.png" width="100%">
+
+</td>
+</tr>
+
+<tr>
+<td colspan="2" align="center">
+
+### 📄 OCR Medical Analysis
+<img src="/assets/consultation.png" width="85%">
+
+</td>
+</tr>
+</table>
+```
+
 ---
 
 ## 6. Installation & Configuration Guide
